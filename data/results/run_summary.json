@@ -1,0 +1,7 @@
+{
+  "raw_rows": 417080,
+  "cleaned_rows": 417080,
+  "distinct_trains": 5208,
+  "distinct_stations": 8539,
+  "pipeline_runtime_seconds": 140.1
+}

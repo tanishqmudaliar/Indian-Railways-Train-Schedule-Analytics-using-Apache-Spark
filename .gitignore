@@ -1,0 +1,35 @@
+# Virtual environment
+.venv/
+
+# Local Java JDK binaries
+.java_local/
+
+# Caches
+.cache/
+
+# Spark temp files
+.spark_tmp/
+metastore_db/
+spark-warehouse/
+derby.log
+
+# Raw data (large, downloaded from Kaggle)
+data/raw/
+
+# Logs
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Hadoop CRC checksum files
+*.crc
+._*
+

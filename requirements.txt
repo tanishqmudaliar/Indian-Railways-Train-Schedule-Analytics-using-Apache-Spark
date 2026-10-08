@@ -1,0 +1,7 @@
+pyspark>=3.5,<4
+pandas>=2.0
+pyarrow>=14.0
+streamlit>=1.30
+matplotlib>=3.8
+kagglehub>=0.2
+setuptools
