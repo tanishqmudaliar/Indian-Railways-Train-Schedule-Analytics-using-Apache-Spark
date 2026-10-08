@@ -10,6 +10,8 @@ Distributed Big Data ETL and timetable analytics pipeline processing 417,000+ In
 ![Platform](https://img.shields.io/badge/Platform-WSL2_Ubuntu_Linux-E95420?logo=ubuntu&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
+**[Live Interactive Dashboard](https://tanishqmudaliar-indian-railways-spark-analytics.streamlit.app/)**
+
 ---
 
 ## Table of Contents
