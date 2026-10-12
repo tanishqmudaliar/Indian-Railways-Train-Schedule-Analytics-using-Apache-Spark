@@ -1,8 +1,8 @@
-# PROMPT: paste everything below this line into Antigravity (Claude Opus)
+# PROJECT SPECIFICATION: Indian Railways Train Schedule Analytics
 
 ---
 
-You are building a small but complete **Big Data Analytics (BDA) mini-project** for a final-year Computer Engineering student (Mumbai University). Build it **from scratch, end to end**: download the dataset, process it with Apache Spark, save the results, and show them on a small website. Run the code yourself and verify that it works. Do not just write files and stop.
+This specification defines the complete end-to-end architecture and implementation details for the **Big Data Analytics (BDA) mini-project** (Mumbai University): downloading the schedule dataset, processing it with Apache Spark in a multi-stage ETL pipeline, persisting results into columnar Parquet format, and presenting analytical findings via an interactive Streamlit dashboard.
 
 ## 1. Project
 

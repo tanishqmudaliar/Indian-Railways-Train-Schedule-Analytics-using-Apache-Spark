@@ -7,6 +7,7 @@ Distributed Big Data ETL and timetable analytics pipeline processing 417,000+ In
 ![Java](https://img.shields.io/badge/OpenJDK-17_Temurin-5382A1?logo=openjdk&logoColor=white)
 ![Apache Parquet](https://img.shields.io/badge/Storage-Apache_Parquet-4B6A9B)
 ![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit_1.65-FF4B4B?logo=streamlit&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-WSL2_Ubuntu_Linux-E95420?logo=ubuntu&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
@@ -66,10 +67,12 @@ All processed datasets and analytical summaries are persisted in columnar Snappy
 - **Multi-Dimensional Partitioning:** Aggregates traffic patterns across railway zones, states, and service categories.
 
 ### Interactive Streamlit Dashboard
-- **Executive Overview Tab:** Live KPI metric cards displaying total stops, trains, stations, and Spark execution runtimes.
-- **Dynamic Stoppage Slider:** Interactive UI control allowing users to dynamically filter stations by minimum stop count (10 to 100+ stops) and visualize top dwell times.
-- **Hourly Traffic Bar Chart:** Visualizes bimodal 24-hour network traffic patterns.
-- **Instant Station Lookup:** Interactive search bar to query any of the 8,539 stations, revealing total stopping trains, average stoppage time, and a searchable schedule table.
+- **Executive Overview Tab:** Live KPI metric cards, dynamic top-N junction sliders, zone and train type filters, interactive Altair charts with detailed tooltips, and table CSV export buttons.
+- **Dynamic Stoppage Slider:** Interactive UI control allowing users to dynamically filter stations by minimum stop count and minimum dwell thresholds, highlighting major locomotive reversal hubs.
+- **Hourly Traffic Bar Chart:** Visualizes diurnal network traffic patterns with custom time-window slicers, transit window presets, and share of 24h traffic tooltips.
+- **Instant Station Lookup:** Interactive search bar to query any of the 8,539 stations, revealing total stopping trains, average stoppage time, arrival period filters, and searchable schedule tables.
+- **Train Route Lookup Tab:** Dedicated route analyzer allowing users to search by train number or service name, view origin-to-destination itineraries, inspect route halt duration profiles, and export route timetables.
+- **Universal CSV Exports & Clean Dataset Download:** Dedicated CSV download buttons for every chart and table reflecting active slicers, plus global export for the complete clean 417,080-stop dataset.
 - **Pipeline Architecture & Diagnostics:** On-screen documentation detailing schema definitions, processing stages, and execution parameters.
 
 ---
@@ -114,11 +117,12 @@ The project follows a decoupled Big Data batch architecture. Apache Spark is ded
 |                                   STREAMLIT PRESENTATION LAYER                                    |
 |                                                                                                   |
 |  [app.py]  Reads Parquet via PyArrow / Pandas (No active Spark context needed)                    |
-|            ├── Tab 1: Overview KPIs & Executive Metrics                                           |
-|            ├── Tab 2: Stoppage Times Analysis (Dynamic Min-Stops Slider)                          |
-|            ├── Tab 3: Hourly Network Traffic Chart                                                |
-|            ├── Tab 4: Interactive Station Lookup & Timetable Search                               |
-|            └── Tab 5: Architecture & Pipeline Diagnostics                                         |
+|            ├── Tab 1: Overview KPIs, Slicers & Network Charts (with CSV Export)                    |
+|            ├── Tab 2: Stoppage Times Analysis (Dynamic Min-Stops & Dwell Sliders)                  |
+|            ├── Tab 3: Hourly Network Traffic Chart (Time-Window Slicing & Proportions)             |
+|            ├── Tab 4: Interactive Station Lookup & Multi-Attribute Filtering                       |
+|            ├── Tab 5: Train Route & Timetable Lookup (Halt Profile Chart & Itinerary)              |
+|            └── Tab 6: Architecture, Diagnostics & Global Clean Dataset CSV Export                  |
 +---------------------------------------------------------------------------------------------------+
 ```
 
@@ -145,7 +149,7 @@ All figures below are computed from the real 417,080 record dataset during actua
 - **Cleaned & Processed Records:** `417,080`
 - **Unique Trains Analyzed:** `5,208`
 - **Unique Railway Stations Mapped:** `8,539`
-- **End-to-End Spark Pipeline Runtime:** `140.1 seconds` (executed on local 8-core CPU)
+- **End-to-End Spark Pipeline Runtime:** `118.8 seconds` (executed on local 8-core CPU)
 
 ### 1. Kanpur Central & Vijayawada are India's Primary Transit Bottlenecks
 Kanpur Central is the busiest railway junction in the entire timetable network, serving as the central funnel between Delhi and eastern India:
@@ -189,11 +193,13 @@ The longest scheduled routes in the country span over 4,000 km and stop nearly 7
 | **Distributed Engine** | Apache Spark 3.5.9 (PySpark DataFrame API, Spark SQL) |
 | **Java Virtual Machine** | Eclipse Temurin OpenJDK 17.0.20.1+1 (isolated in project folder) |
 | **Language & Environment** | Python 3.12 (WSL2 Ubuntu Linux, virtual environment `.venv/`) |
+| **Containerization** | Docker, Docker Compose (Multi-stage Python 3.12 + OpenJDK 17) |
 | **Storage Formats** | Apache Parquet (Snappy compression), JSON / GeoJSON |
 | **Data Processing & Analysis** | Pandas, PyArrow, NumPy |
-| **Frontend Dashboard** | Streamlit 1.65.0, Matplotlib |
+| **Frontend Dashboard** | Streamlit 1.65.0, Altair 5.x, Matplotlib |
+| **Automated Testing** | pytest 8.x, automated data verification suite (`test_app.py`) |
 | **Dataset Ingestion** | KaggleHub API / Direct Kaggle download |
-| **Shell & Orchestration** | Bash (`run_all.sh`, `run_python.sh`) |
+| **Shell & Orchestration** | Bash (`run_all.sh`, `run_python.sh`), Docker Compose |
 
 ---
 
@@ -243,12 +249,26 @@ bash run_all.sh
 ./run_python.sh test_app.py          # Automated verification test
 ```
 
-#### Option 3: Launching the Web Dashboard
+#### Option 3: Launching the Web Dashboard Locally
 ```bash
 source .venv/bin/activate
 streamlit run app.py
 ```
 Open **`http://localhost:8501`** in your browser.
+
+#### Option 4: Containerized Execution with Docker & Docker Compose
+The repository includes production-ready Docker support bundling Python 3.12, OpenJDK 17, and Streamlit:
+
+```bash
+# Build and launch the interactive analytics dashboard in Docker
+docker compose up --build
+
+# Access the dashboard in your browser
+# http://localhost:8501
+
+# Execute the automated verification test suite inside a container
+docker compose --profile test run test-runner
+```
 
 ---
 
@@ -256,9 +276,15 @@ Open **`http://localhost:8501`** in your browser.
 
 ```
 Indian Railways Train Schedule Analytics using Apache Spark/
+├── .devcontainer/                     # VS Code Dev Container configuration
+│   └── devcontainer.json
 ├── .java_local/                       # Isolated Temurin OpenJDK 17 installation
 │   └── current/                       # JAVA_HOME target
+├── .streamlit/                        # Streamlit server and theme configuration
+│   └── config.toml
 ├── .venv/                             # Python 3.12 virtual environment
+├── assets/                            # Custom styling and branding
+│   └── style.css                      # Modular enterprise dashboard CSS
 ├── data/
 │   ├── raw/                           # Raw datasets from Kaggle
 │   │   ├── schedules.json             # 417,080 timetable stop records (78.4 MB)
@@ -276,18 +302,30 @@ Indian Railways Train Schedule Analytics using Apache Spark/
 │       ├── breakdown_zone.parquet/    # Railway zone distribution
 │       ├── breakdown_train_type.parquet # Train category distribution
 │       ├── inspection_report.txt      # Schema inspection and null distribution
-│       └── run_summary.json           # Execution metrics & runtime
+│       └── run_summary.json           # Execution metrics & runtime (118.8s)
 ├── src/
+│   ├── __init__.py                    # Standard Python package marker
 │   ├── 00_download.py                 # Kaggle extraction script
 │   ├── 01_inspect.py                  # PySpark schema inspection job
 │   ├── 02_clean.py                    # PySpark cleaning & transformation job
-│   └── 03_analyse.py                  # PySpark DataFrame & Spark SQL analytics
-├── app.py                             # Interactive Streamlit dashboard
-├── test_app.py                        # Automated dashboard data verification test
+│   ├── 03_analyse.py                  # PySpark DataFrame & Spark SQL analytics
+│   └── chart_utils.py                 # Altair interactive visualizations & tooltips
+├── tests/                             # Automated test suite (pytest)
+│   ├── __init__.py
+│   ├── test_chart_utils.py            # Altair chart construction tests
+│   ├── test_clean_logic.py            # Timestamp & dwell calculation unit tests
+│   └── test_data_integrity.py        # Parquet schema and value assertion tests
+├── .dockerignore                      # Docker build context exclusion rules
+├── Dockerfile                         # Multi-runtime Docker container specification
+├── docker-compose.yml                 # Multi-service Compose orchestrator
+├── app.py                             # Interactive 6-tab Streamlit web dashboard
+├── test_app.py                        # Automated regression & verification test runner
 ├── run_all.sh                         # Master execution script
 ├── run_python.sh                      # Environment-safe Python runner
+├── requirements.txt                   # Production Python package dependencies
+├── LICENSE                            # MIT License
 ├── README.md                          # Project documentation manual
-├── EXPLAINER.md                       # Architecture deep-dive & viva defense guide
+├── EXPLAINER.md                       # Architecture deep-dive & defense guide
 └── PLAN.md                            # Project requirements & engineering spec
 ```
 
@@ -297,12 +335,14 @@ Indian Railways Train Schedule Analytics using Apache Spark/
 
 - **`run_all.sh`**: The end-to-end master automation script. Verifies `JAVA_HOME` in `.java_local/current/`, activates `.venv`, validates script permissions, and executes Phases 0 through 4 with status checks and color-coded logging.
 - **`run_python.sh`**: A wrapper script that dynamically configures `JAVA_HOME`, `PATH`, and relative Spark parameters (`-Dderby.system.home=./metastore_db`), safely handling paths containing spaces.
+- **`Dockerfile` & `docker-compose.yml`**: Containerization setup providing Python 3.12, OpenJDK 17, and Streamlit, with healthchecks and a dedicated test-runner profile.
 - **`src/00_download.py`**: Interacts with `kagglehub` to download `sripaadsrinivasan/indian-railways-dataset`. Copies `schedules.json`, `stations.json`, and `trains.json` directly into `data/raw/`.
 - **`src/01_inspect.py`**: Initializes a PySpark session, infers schemas, validates row counts, counts nulls per column, and generates `data/results/inspection_report.txt`.
 - **`src/02_clean.py`**: Core Spark cleaning job. Standardizes timestamps, calculates duration across midnight crossings, extracts coordinates/zones from GeoJSON, and writes Snappy-compressed `data/processed/stops.parquet`.
 - **`src/03_analyse.py`**: Core analytics job. Executes 5 distinct Spark SQL and DataFrame aggregations, including `PERCENTILE_APPROX(0.9)` for dwell time distribution, exporting 7 Parquet result directories and `run_summary.json`.
-- **`app.py`**: The Streamlit user interface. Built with 5 tabs, KPI metric cards, dynamic Matplotlib visualizations, interactive threshold filtering, and station lookup.
-- **`test_app.py`**: Headless test suite that loads all generated Parquet files, verifies row integrity, tests chart generation, and validates station lookup matching without opening a browser.
+- **`src/chart_utils.py`**: Altair interactive chart generator providing rounded bar charts, dual-measure scatter plots, diurnal curves, and rich hover tooltips.
+- **`app.py`**: The Streamlit user interface featuring 6 tabs (Overview, Stoppage Times, Hourly Traffic, Station Lookup, Train Lookup, About Pipeline), dynamic slicers, unified right-aligned CSV exports, and dark-mode enterprise theme.
+- **`tests/` & `test_app.py`**: Comprehensive test suite (16 tests) covering dwell calculation, midnight rollover, schema integrity, and automated regression verification.
 - **`EXPLAINER.md`**: Complete viva defense guide covering Apache Spark architecture, shuffle partition optimization, Parquet columnar internals, design trade-offs, and typical examiner questions.
 
 ---
