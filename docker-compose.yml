@@ -1,0 +1,37 @@
+services:
+  # Streamlit Analytics Dashboard Service
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: indian-railways-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    volumes:
+      # Mount data and results for persistence and local re-runs
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional Test Runner Service: executes test_app.py and pytest inside container
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: indian-railways-test-runner
+    command: ["python", "test_app.py"]
+    volumes:
+      - ./data:/app/data
+    profiles:
+      - test

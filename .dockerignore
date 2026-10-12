@@ -1,0 +1,34 @@
+# Git
+.git/
+.gitignore
+
+# Virtual environment and local Java
+.venv/
+.java_local/
+
+# Temporary and cache directories
+.cache/
+.spark_tmp/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Spark & Derby metadata
+metastore_db/
+spark-warehouse/
+derby.log
+
+# Raw dataset archives (downloaded during pipeline execution)
+data/raw/
+
+# Hadoop CRC checksums
+*.crc
+._*
+
+# IDE and OS artifacts
+.vscode/
+.idea/
+.DS_Store
+*.swp
