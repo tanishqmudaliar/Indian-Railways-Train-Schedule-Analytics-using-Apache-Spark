@@ -7,7 +7,7 @@ set -e
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
-export JAVA_HOME="$PROJECT_DIR/.java_local/jdk-17.0.2"
+export JAVA_HOME="$PROJECT_DIR/.java_local/current"
 export PATH="$JAVA_HOME/bin:$PATH"
 
 echo "=== Java version ==="

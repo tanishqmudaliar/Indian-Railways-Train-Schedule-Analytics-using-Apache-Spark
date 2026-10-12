@@ -23,6 +23,8 @@ logs/
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
+assets/*.pyc
 
 # IDE
 .vscode/
